@@ -4,11 +4,13 @@ declare function setTimeout(callback: () => void, ms: number): TimerId;
 declare function clearTimeout(timerId: TimerId): void;
 
 export type DebounceOptions<T extends readonly unknown[]> = Readonly<{
-  leadingCallback: (args: T) => void;
-  trailingCallback: (args: T, count: number) => void;
+  leadingCallback: (args: T, actitve: boolean) => void;
+  trailingCallback: (args: T, active: boolean) => void;
   cancelCallback: () => void;
   wait: number;
   maxWait?: number;
+  leading?: boolean;
+  trailing?: boolean;
 }>;
 
 type DebounceState<T extends readonly unknown[]> =
@@ -22,11 +24,13 @@ type DebounceState<T extends readonly unknown[]> =
     }>;
 
 export class Debounce<T extends readonly unknown[]> {
-  private leadingCallback: (args: T) => void;
-  private trailingCallback: (args: T, count: number) => void;
+  private leadingCallback: (args: T, active: boolean) => void;
+  private trailingCallback: (args: T, active: boolean) => void;
   private cancelCallback: () => void;
   private wait: number;
   private maxWait: number | undefined;
+  private leading: boolean;
+  private trailing: boolean;
 
   private state: DebounceState<T>;
   private isDisposed: boolean;
@@ -37,6 +41,8 @@ export class Debounce<T extends readonly unknown[]> {
     this.cancelCallback = options.cancelCallback;
     this.wait = options.wait;
     this.maxWait = options.maxWait;
+    this.leading = options.leading ?? false;
+    this.trailing = options.trailing ?? true;
 
     this.state = { type: "standby" };
     this.isDisposed = false;
@@ -54,7 +60,7 @@ export class Debounce<T extends readonly unknown[]> {
           this.maxWait !== undefined ? setTimeout(() => this.flush(), this.maxWait) : undefined;
         this.state = { type: "waiting", timerId, maxWaitTimerId, args, count: 1 };
         const leadingCallback = this.leadingCallback;
-        leadingCallback(args);
+        leadingCallback(args, this.leading);
         break;
       }
       case "waiting": {
@@ -83,7 +89,7 @@ export class Debounce<T extends readonly unknown[]> {
         }
         this.state = { type: "standby" };
         const trailingCallback = this.trailingCallback;
-        trailingCallback(args, count);
+        trailingCallback(args, this.trailing && !(this.leading && count === 1));
         break;
       }
     }

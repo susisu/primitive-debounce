@@ -11,12 +11,12 @@ describe("Debounce", () => {
   });
 
   const createMockCallbacks = (): {
-    leadingCallback: jest.Mock<void, [[string]]>;
-    trailingCallback: jest.Mock<void, [[string], number]>;
+    leadingCallback: jest.Mock<void, [[string], boolean]>;
+    trailingCallback: jest.Mock<void, [[string], boolean]>;
     cancelCallback: jest.Mock<void, []>;
   } => ({
-    leadingCallback: jest.fn<void, [[string]]>(() => {}),
-    trailingCallback: jest.fn<void, [[string], number]>(() => {}),
+    leadingCallback: jest.fn<void, [[string], boolean]>(() => {}),
+    trailingCallback: jest.fn<void, [[string], boolean]>(() => {}),
     cancelCallback: jest.fn<void, []>(() => {}),
   });
 
@@ -31,7 +31,7 @@ describe("Debounce", () => {
 
     d.trigger("foo");
     expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
     expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(500);
@@ -51,7 +51,7 @@ describe("Debounce", () => {
     jest.advanceTimersByTime(500);
     expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
     expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], 3);
+    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], true);
   });
 
   it("should flush waiting timeout after maxWait", () => {
@@ -76,39 +76,98 @@ describe("Debounce", () => {
 
     jest.advanceTimersByTime(500);
     expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], 3);
+    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], true);
   });
 
-  it("should count the number of triggers", () => {
+  it("should invoke the leading callback with active = true when leading = true", () => {
     const callbacks = createMockCallbacks();
     const d = new Debounce({
       ...callbacks,
       wait: 1000,
+      leading: true,
     });
     expect(callbacks.leadingCallback).not.toHaveBeenCalled();
     expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
     d.trigger("foo");
     expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], true);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    d.trigger("bar");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    d.trigger("baz");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], true);
+  });
+
+  it("should invoke the trailing callback with active = false when trailing = false", () => {
+    const callbacks = createMockCallbacks();
+    const d = new Debounce({
+      ...callbacks,
+      wait: 1000,
+      trailing: false,
+    });
+    expect(callbacks.leadingCallback).not.toHaveBeenCalled();
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    d.trigger("foo");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    d.trigger("bar");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    d.trigger("baz");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(500);
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["baz"], false);
+  });
+
+  it("should invoke the trailing callback with active = false when trailing = true but leading = true and triggered only once", () => {
+    const callbacks = createMockCallbacks();
+    const d = new Debounce({
+      ...callbacks,
+      wait: 1000,
+      leading: true,
+    });
+    expect(callbacks.leadingCallback).not.toHaveBeenCalled();
+    expect(callbacks.trailingCallback).not.toHaveBeenCalled();
+
+    d.trigger("foo");
+    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
+    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], true);
     expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1000);
     expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
     expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], 1);
-
-    d.trigger("bar");
-    d.trigger("baz");
-    d.trigger("qux");
-    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(2);
-    expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["bar"]);
-    expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-
-    jest.advanceTimersByTime(1000);
-    expect(callbacks.leadingCallback).toHaveBeenCalledTimes(2);
-    expect(callbacks.trailingCallback).toHaveBeenCalledTimes(2);
-    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["qux"], 3);
+    expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], false);
   });
 
   it("should not invoke the leading callback after it is disposed", () => {
@@ -180,7 +239,7 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
       jest.advanceTimersByTime(500);
@@ -191,7 +250,7 @@ describe("Debounce", () => {
       d.flush();
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
       expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["bar"], 2);
+      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["bar"], true);
     });
 
     it("should do nothing if there is no waiting invocation", () => {
@@ -209,13 +268,13 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
       jest.advanceTimersByTime(1000);
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
       expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], 1);
+      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], true);
     });
 
     it("should do nothing if it has been disposed", () => {
@@ -229,7 +288,7 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
 
       d.dispose();
@@ -253,7 +312,7 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
       expect(callbacks.cancelCallback).not.toHaveBeenCalled();
 
@@ -287,7 +346,7 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
       expect(callbacks.cancelCallback).not.toHaveBeenCalled();
 
@@ -331,14 +390,14 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
       expect(callbacks.cancelCallback).toHaveBeenCalledTimes(1);
 
       jest.advanceTimersByTime(1000);
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
       expect(callbacks.trailingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], 1);
+      expect(callbacks.trailingCallback).toHaveBeenLastCalledWith(["foo"], true);
       expect(callbacks.cancelCallback).toHaveBeenCalledTimes(1);
     });
 
@@ -354,7 +413,7 @@ describe("Debounce", () => {
 
       d.trigger("foo");
       expect(callbacks.leadingCallback).toHaveBeenCalledTimes(1);
-      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"]);
+      expect(callbacks.leadingCallback).toHaveBeenLastCalledWith(["foo"], false);
       expect(callbacks.trailingCallback).not.toHaveBeenCalled();
       expect(callbacks.cancelCallback).not.toHaveBeenCalled();
 
