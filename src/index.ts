@@ -4,12 +4,36 @@ declare function setTimeout(callback: () => void, ms: number): TimerId;
 declare function clearTimeout(timerId: TimerId): void;
 
 export type DebounceOptions<T extends readonly unknown[]> = Readonly<{
+  /**
+   * The function invoked on the leading edge of timeout, i.e., immediately after the first trigger.
+   * It is invoked with active = true if leading = true.
+   */
   leadingCallback: (args: T, actitve: boolean) => void;
+  /**
+   * The function invoked on the trailing edge of timeout, i.e., some time after the last trigger.
+   * It is invoked with active = true if trailing = true.
+   * When leading = true, however, it is invoked with active = false if there was a only one trigger.
+   */
   trailingCallback: (args: T, active: boolean) => void;
+  /**
+   * The function invoked when the cancel method is called.
+   */
   cancelCallback: () => void;
+  /**
+   * The delay of timeout, in milliseconds.
+   */
   wait: number;
+  /**
+   * The maximum delay of timeout, in milliseconds.
+   */
   maxWait?: number;
+  /**
+   * Whether to invoke leadingCallback with active = true.
+   */
   leading?: boolean;
+  /**
+   * Whether to invoke trailingCallback with active = true.
+   */
   trailing?: boolean;
 }>;
 
@@ -23,6 +47,9 @@ type DebounceState<T extends readonly unknown[]> =
       count: number;
     }>;
 
+/**
+ * Debounce provides primitive features for implementing "debounce" function.
+ */
 export class Debounce<T extends readonly unknown[]> {
   private leadingCallback: (args: T, active: boolean) => void;
   private trailingCallback: (args: T, active: boolean) => void;
@@ -48,6 +75,9 @@ export class Debounce<T extends readonly unknown[]> {
     this.isDisposed = false;
   }
 
+  /**
+   * Triggers debounced invocation.
+   */
   trigger(...args: T): void {
     if (this.isDisposed) {
       return;
@@ -73,6 +103,9 @@ export class Debounce<T extends readonly unknown[]> {
     }
   }
 
+  /**
+   * Flushes the ongoing debounced invocation, if exists.
+   */
   flush(): void {
     if (this.isDisposed) {
       return;
@@ -95,6 +128,9 @@ export class Debounce<T extends readonly unknown[]> {
     }
   }
 
+  /**
+   * Cancels the ongoing debounced invocation, if exists.
+   */
   cancel(): void {
     if (this.isDisposed) {
       return;
@@ -117,6 +153,9 @@ export class Debounce<T extends readonly unknown[]> {
     cancelCallback();
   }
 
+  /**
+   * Cancels the ongoing debounced invocation, and disposes this instance.
+   */
   dispose(): void {
     this.isDisposed = true;
     // eslint-disable-next-line default-case
