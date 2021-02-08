@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/susisu/primitive-debounce/workflows/CI/badge.svg)](https://github.com/susisu/primitive-debounce/actions?query=workflow%3ACI)
 
+Primitive for implementing "debounce" function.
+
 ``` shell
 npm i @susisu/primitive-debounce
 # or
