@@ -1,6 +1,6 @@
 {
   "name": "@susisu/primitive-debounce",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Primitive for implementing \"debounce\" function.",
   "repository": "https://github.com/susisu/primitive-debounce.git",
   "author": "Susisu <susisu2413@yahoo.co.jp>",
