@@ -26,15 +26,15 @@ export type DebounceOptions<T extends readonly unknown[]> = Readonly<{
   /**
    * The maximum delay of timeout, in milliseconds.
    */
-  maxWait?: number;
+  maxWait?: number | undefined;
   /**
    * Whether to invoke leadingCallback with active = true.
    */
-  leading?: boolean;
+  leading?: boolean | undefined;
   /**
    * Whether to invoke trailingCallback with active = true.
    */
-  trailing?: boolean;
+  trailing?: boolean | undefined;
 }>;
 
 type DebounceState<T extends readonly unknown[]> =
