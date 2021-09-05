@@ -82,7 +82,6 @@ export class Debounce<T extends readonly unknown[]> {
     if (this.isDisposed) {
       return;
     }
-    // eslint-disable-next-line default-case
     switch (this.state.type) {
       case "standby": {
         const timerId = setTimeout(() => this.flush(), this.wait);
@@ -100,6 +99,8 @@ export class Debounce<T extends readonly unknown[]> {
         this.state = { type: "waiting", timerId, maxWaitTimerId, args, count: count + 1 };
         break;
       }
+      default:
+        unreachable(this.state);
     }
   }
 
@@ -110,7 +111,6 @@ export class Debounce<T extends readonly unknown[]> {
     if (this.isDisposed) {
       return;
     }
-    // eslint-disable-next-line default-case
     switch (this.state.type) {
       case "standby":
         break;
@@ -125,6 +125,8 @@ export class Debounce<T extends readonly unknown[]> {
         trailingCallback(args, this.trailing && !(this.leading && count === 1));
         break;
       }
+      default:
+        unreachable(this.state);
     }
   }
 
@@ -135,7 +137,6 @@ export class Debounce<T extends readonly unknown[]> {
     if (this.isDisposed) {
       return;
     }
-    // eslint-disable-next-line default-case
     switch (this.state.type) {
       case "standby":
         break;
@@ -148,6 +149,8 @@ export class Debounce<T extends readonly unknown[]> {
         this.state = { type: "standby" };
         break;
       }
+      default:
+        unreachable(this.state);
     }
     const cancelCallback = this.cancelCallback;
     cancelCallback();
@@ -158,7 +161,6 @@ export class Debounce<T extends readonly unknown[]> {
    */
   dispose(): void {
     this.isDisposed = true;
-    // eslint-disable-next-line default-case
     switch (this.state.type) {
       case "standby":
         break;
@@ -170,6 +172,12 @@ export class Debounce<T extends readonly unknown[]> {
         }
         break;
       }
+      default:
+        unreachable(this.state);
     }
   }
+}
+
+function unreachable(x: never): never {
+  throw new Error(`reached: ${JSON.stringify(x)}`);
 }
