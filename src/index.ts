@@ -60,7 +60,6 @@ export class Debounce<T extends readonly unknown[]> {
   private trailing: boolean;
 
   private state: DebounceState<T>;
-  private isDisposed: boolean;
 
   constructor(options: DebounceOptions<T>) {
     this.leadingCallback = options.leadingCallback;
@@ -72,16 +71,12 @@ export class Debounce<T extends readonly unknown[]> {
     this.trailing = options.trailing ?? true;
 
     this.state = { type: "standby" };
-    this.isDisposed = false;
   }
 
   /**
    * Triggers debounced invocation.
    */
   trigger(...args: T): void {
-    if (this.isDisposed) {
-      return;
-    }
     switch (this.state.type) {
       case "standby": {
         const timerId = setTimeout(() => this.flush(), this.wait);
@@ -108,9 +103,6 @@ export class Debounce<T extends readonly unknown[]> {
    * Flushes the ongoing debounced invocation, if exists.
    */
   flush(): void {
-    if (this.isDisposed) {
-      return;
-    }
     switch (this.state.type) {
       case "standby":
         break;
@@ -134,9 +126,6 @@ export class Debounce<T extends readonly unknown[]> {
    * Cancels the ongoing debounced invocation, if exists.
    */
   cancel(): void {
-    if (this.isDisposed) {
-      return;
-    }
     switch (this.state.type) {
       case "standby":
         break;
@@ -154,27 +143,6 @@ export class Debounce<T extends readonly unknown[]> {
     }
     const cancelCallback = this.cancelCallback;
     cancelCallback();
-  }
-
-  /**
-   * Cancels the ongoing debounced invocation, and disposes this instance.
-   */
-  dispose(): void {
-    this.isDisposed = true;
-    switch (this.state.type) {
-      case "standby":
-        break;
-      case "waiting": {
-        const { timerId, maxWaitTimerId } = this.state;
-        clearTimeout(timerId);
-        if (maxWaitTimerId !== undefined) {
-          clearTimeout(maxWaitTimerId);
-        }
-        break;
-      }
-      default:
-        unreachable(this.state);
-    }
   }
 }
 
