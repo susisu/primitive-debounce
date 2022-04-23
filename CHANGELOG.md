@@ -1,3 +1,10 @@
+## 0.3.0 (2022-04-23)
+### Breaking changes
+- Remove `Debounce#dispose()`
+
+### Features
+- Include source files in distribution (for source maps)
+
 ## 0.2.0 (2021-07-23)
 ### Breaking changes
 - Drop Node.js 10 support
