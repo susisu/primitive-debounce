@@ -23,16 +23,6 @@ module.exports = {
       },
     },
     {
-      files: ["*.{test,spec}.{ts,tsx}", "src/**/__tests__/**/*.{ts,tsx}"],
-      extends: ["plugin:jest/recommended", "plugin:jest-formatting/recommended"],
-      env: {
-        "jest/globals": true,
-      },
-      rules: {
-        "@typescript-eslint/no-floating-promises": "off",
-      },
-    },
-    {
       files: ["*.js"],
       extends: [
         "@susisu/eslint-config/preset/js",
