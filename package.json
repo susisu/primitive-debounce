@@ -1,7 +1,7 @@
 {
   "name": "@susisu/primitive-debounce",
-  "version": "0.3.0",
-  "description": "Primitive for implementing \"debounce\" function.",
+  "version": "0.4.0",
+  "description": "Provides primitive functionality to implement debounce functions",
   "repository": "https://github.com/susisu/primitive-debounce.git",
   "author": "Susisu <susisu2413@yahoo.co.jp>",
   "license": "MIT",
