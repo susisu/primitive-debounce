@@ -1,16 +1,8 @@
-"use strict";
+import { config } from "@susisu/eslint-config";
+import vitestPlugin from "eslint-plugin-vitest";
+import globals from "globals";
 
-const { config } = require("@susisu/eslint-config");
-const vitestPlugin = require("eslint-plugin-vitest");
-const globals = require("globals");
-
-module.exports = config({}, [
-  {
-    files: ["*.js"],
-    languageOptions: {
-      sourceType: "commonjs",
-    },
-  },
+export default config({}, [
   {
     plugins: {
       vitest: vitestPlugin,
