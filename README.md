@@ -5,9 +5,12 @@
 Primitive for implementing "debounce" function.
 
 ``` shell
+# npm
 npm i @susisu/primitive-debounce
-# or
+# yarn
 yarn add @susisu/primitive-debounce
+# pnpm
+pnpm add @susisu/primitive-debounce
 ```
 
 ## License
